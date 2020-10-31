@@ -7,12 +7,12 @@
 DMRP.Dice = DMRP.Dice or {};
 local chatMessage = DMRP.Chat.fakeChatMessage;
 
-local libSerializer = LibStub:GetLibrary("AceSerializer-3.0");
+local LibDeflate = LibStub:GetLibrary("LibDeflate");
 local CreateFrame = CreateFrame;
 local Utils = DMRP.Utils;
 local config, log = Utils.config, Utils.log;
 
-local currentDiceState = 'advantage';
+local currentDiceState = 'individual';
 local advantageRoll = { result = 0 }
 local diceAdvantage = 1;
 
@@ -42,8 +42,6 @@ end
 
 local f = CreateFrame("frame")
 f:RegisterEvent("CHAT_MSG_SYSTEM")
-f:RegisterEvent("CHAT_MSG_ADDON")
-f:RegisterEvent("CHAT_MSG_ADDON_LOGGED")
 f:SetScript("OnEvent", function(self, event, message, addonContent,...)
     if event == "CHAT_MSG_SYSTEM" then
         log(event, message, addonContent,...)
@@ -53,19 +51,34 @@ f:SetScript("OnEvent", function(self, event, message, addonContent,...)
             local rollSize = rollMax - modifier
             reportDiceRolls(author, rollResult, rollSize, modifier);
         end
-    elseif event == "CHAT_MSG_ADDON" then
-        if message == 'TRP3.3' then
-            log('unlogged addon', event, message, addonContent,...)
-            local _, deserializedContent = libSerializer:Deserialize(addonContent)
-            log('unlogged addon', event, message, deserializedContent,...)
-        end
-
 
     end
 end)
 
-
-
+local PROTOCOL_PREFIX = "TRP3.3";
+local PROTOCOL_SETTINGS = {
+    permitUnlogged = true,
+    permitLogged = true,
+    permitBattleNet = true,
+    fullMsgOnly = true,
+    validTypes = {
+        ["string"] = true,
+        ["table"] = true,
+    },
+    broadcastPrefix = "TRP3.3"
+}
+local function TRPDiceRollHandler(arg1, addonContent, channel, sender)
+    local decodedCompressedData = LibDeflate:DecodeForWoWChatChannel(addonContent:sub(3, -1));
+    local deflatedContent = LibDeflate:DecompressDeflate(decodedCompressedData);
+    local deserializedContent = AddOn_Chomp.Deserialize(deflatedContent);
+    log (type(deserializedContent), deserializedContent)
+    reportDiceRolls(sender, deserializedContent.data.t, deserializedContent.data.d, deserializedContent.data.m)
+end
+if not AddOn_Chomp.IsAddonPrefixRegistered(PROTOCOL_PREFIX) then
+    AddOn_Chomp.RegisterAddonPrefix(PROTOCOL_PREFIX, TRPDiceRollHandler, PROTOCOL_SETTINGS)
+else
+    AddOn_Chomp.HookAddonPrefix(PROTOCOL_PREFIX, TRPDiceRollHandler)
+end
 local function resetDice()
     lastRolls = {};
 end

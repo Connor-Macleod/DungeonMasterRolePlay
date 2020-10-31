@@ -14,7 +14,8 @@ local log = Utils.log;
 
 local function initConfig()
     local defaultConfig = {
-        rollType = 'ingame'
+        rollType = 'ingame',
+        showInListener = true
     }
     for x,v in pairs(defaultConfig) do
         if (not DMRP.Utils.config[x]) then

@@ -5,5 +5,3 @@
 --#======================#
 
 DMRP = DMRP or {}
-
-DMRP.addon = LibStub("AceAddon-3.0"):NewAddon("DMRP", "AceSerializer-3.0")

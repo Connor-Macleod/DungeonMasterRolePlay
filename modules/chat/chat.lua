@@ -66,6 +66,10 @@ local function fakeChatMessage(message, channel, author, guid, messageID)
         log("playerName:",playerName)
         formattedMessage = "["..(playerName or author).."]" ..": "..message;
     end
+    if DMRP.Compat.listener.isLoaded() then
+        DMRP.Compat.listener.addMessageToListener(message, channel, author, guid)
+    end
+
     printToChatChannel(formattedMessage, channel, r,g,b)
 end
 

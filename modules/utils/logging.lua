@@ -4,7 +4,7 @@
 --|Time: 14:07           |
 --#======================#
 
-local debug = true
+local debug = false
 
 DMRP = DMRP or {}
 

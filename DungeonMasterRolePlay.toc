@@ -2,7 +2,7 @@
 ## Title: Dungeon Master Role Play
 ## Notes: Addon designed for the Sapphire Tome event system
 ## Author: Saelorable
-## Version: 1.0
+## Version: 0.1.2
 ##OptionalDeps: totalRP3
 
 DMRP.xml
