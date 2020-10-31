@@ -1,0 +1,3 @@
+[submodule "libs/Chomp"]
+	path = libs/Chomp
+	url = https://connor-macleod@github.com/wow-rp-addons/Chomp.git
