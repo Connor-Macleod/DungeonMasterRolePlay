@@ -18,6 +18,23 @@ local diceAdvantage = 1;
 
 log("init dice");
 
+local function diceRollMessage(playerName, rollResult, rollSize, modifier)
+    if DMRP.Chat.nextRollMessage and playerName == Utils.getPlayerName() then
+        if not string.match(DMRP.Chat.nextRollMessage[1], '%$%{result%}') and not string.match(DMRP.Chat.nextRollMessage[1], '%$%{total%}') then
+            DMRP.Chat.nextRollMessage[1] = DMRP.Chat.nextRollMessage[1].." (roll "..rollResult.."/"..rollSize+modifier..")"
+        end
+
+
+
+        DMRP.Chat.nextRollMessage[1] = DMRP.Chat.nextRollMessage[1]:gsub('%$%{result%}', rollResult)
+        DMRP.Chat.nextRollMessage[1] = DMRP.Chat.nextRollMessage[1]:gsub('%$%{total%}', rollResult)
+        DMRP.Chat.nextRollMessage[1] = DMRP.Chat.nextRollMessage[1]:gsub('%$%{max%}', rollSize)
+        DMRP.Chat.nextRollMessage[1] = DMRP.Chat.nextRollMessage[1]:gsub('%$%{modifier%}', modifier)
+        DMRP.Chat.chatHook(unpack(DMRP.Chat.nextRollMessage));
+        DMRP.Chat.nextRollMessage = nil;
+    end
+end
+
 local lastRolls = {};
 local function reportDiceRolls(author, rollResult, rollSize, modifier)
     local playerName = Utils.getPlayerName(author)
@@ -31,12 +48,18 @@ local function reportDiceRolls(author, rollResult, rollSize, modifier)
             diceAdvantage = 1;
             currentDiceState = 'individual'
             chatMessage("rolls "..advantageRoll.result.." on a d"..advantageRoll.diceSize .. (advantageRoll.modifier == 0 and "" or ((advantageRoll.modifier > 0 and "+" or "-")..advantageRoll.modifier)).." with advantage.", "EMOTE",author)
-            advantageRoll = {result= 0}
+
+            diceRollMessage(playerName, advantageRoll.result, advantageRoll.diceSize, advantageRoll.modifier)
+
+            advantageRoll = {result= 0 }
+
         end
     else
         lastRolls[playerName] = {result = rollResult, diceSize = rollSize, modifier = modifier, diceCount = 1}
         chatMessage("rolls "..rollResult.." on a d"..rollSize .. (modifier == 0 and "" or ((modifier > 0 and "+" or "-")..modifier)), "EMOTE", author)
+        diceRollMessage(playerName, rollResult, rollSize, modifier)
     end
+    DMRP.Chat.nextRollSilent = false;
 end
 
 
@@ -69,10 +92,17 @@ local PROTOCOL_SETTINGS = {
 }
 local function TRPDiceRollHandler(arg1, addonContent, channel, sender)
     local decodedCompressedData = LibDeflate:DecodeForWoWChatChannel(addonContent:sub(3, -1));
+    if not decodedCompressedData then return end
     local deflatedContent = LibDeflate:DecompressDeflate(decodedCompressedData);
+    if not decodedCompressedData then return end
     local deserializedContent = AddOn_Chomp.Deserialize(deflatedContent);
-    log (type(deserializedContent), deserializedContent)
-    reportDiceRolls(sender, deserializedContent.data.t, deserializedContent.data.d, deserializedContent.data.m)
+    if not deserializedContent then return end
+    log (type(deserializedContent), deserializedContent, deserializedContent.modulePrefix)
+    if deserializedContent.modulePrefix == 'DISN' then
+        reportDiceRolls(sender, deserializedContent.data.t, deserializedContent.data.d, deserializedContent.data.m)
+    else
+        log("prefix should be DISM", deserializedContent.modulePrefix)
+    end
 end
 if not AddOn_Chomp.IsAddonPrefixRegistered(PROTOCOL_PREFIX) then
     AddOn_Chomp.RegisterAddonPrefix(PROTOCOL_PREFIX, TRPDiceRollHandler, PROTOCOL_SETTINGS)

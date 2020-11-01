@@ -74,3 +74,98 @@ local function fakeChatMessage(message, channel, author, guid, messageID)
 end
 
 DMRP.Chat.fakeChatMessage = fakeChatMessage;
+
+local function escape_pattern(text)
+    return text:gsub("([^%w])", "%%%1")
+end
+
+local LANGUAGES = {
+    [1] = "Orcish",
+    [2] = "Darnassian",
+    [3] = "Taurahe",
+    [6] = "Dwarvish",
+    [7] = "Common",
+    [8] = "Demonic",
+    [9] = "Titan",
+    [10] = "Thalassian",
+    [11] = "Draconic",
+    [12] = "Kalimag",
+    [13] = "Gnomish",
+    [14] = "Zandali",
+    [33] = "Forsaken",
+    [35] = "Draenei",
+    [36] = "Zombie",
+    [37] = "Gnomish Binary",
+    [38] = "Goblin Binary",
+    [39] = "Gilnean",
+    [40] = "Goblin",
+    [42] = "Pandaren",
+    [43] = "Pandaren",
+    [44] = "Pandaren",
+    [168] = "Sprite",
+    [178] = "Shath'Yar",
+    [179] = "Nerglish",
+    [180] = "Moonkin",
+    [181] = "Shalassian",
+    [182] = "Thalassian",
+    [285] = "Vulpera"
+}
+
+DMRP.Chat.nextRollMessage = nil
+
+DMRP.Chat.chatHook = SendChatMessage;
+SendChatMessage = function(message, channel, language, ...)
+    log(message, {...});
+    local messageAwatingNextResult
+    --get groupings
+    for command in message:gmatch('%[[^%]]+%]') do
+        local shouldRemove = false;
+        local commandStripped = command:sub(2,-2);
+        log("performing command:", command,
+            string.match(commandStripped, "^"..'heal'))
+        for i,v in pairs(DMRP.Dice.diceRollTypes) do
+            if string.match(commandStripped, "^"..i) then
+                shouldRemove = true
+                local prams = DMRP.Dice.spreadSlashArgs(commandStripped)
+                table.remove(prams, 1);
+                if string.match(commandStripped, "adv") then
+                    DMRP.Dice.diceState('advantage', 2)
+                    v(true, prams)
+                else
+                    v(false, prams)
+                end
+
+                messageAwatingNextResult = true;
+            end
+
+        end
+
+
+        log(commandStripped);
+        log("removing", shouldRemove, escape_pattern(command));
+
+        if shouldRemove then
+            message = message:gsub(escape_pattern(command).." *", '')
+        end
+    end
+    local _, defaultLanguage = GetDefaultLanguage("player")
+    if language ~= defaultLanguage and channel == "SAY" or channel == "YELL" then
+        log("changing language", GetDefaultLanguage("player"))
+        local languageName = LANGUAGES[language];
+        log(languageName)
+        message = (languageName and ('['..(languageName)..'] ') or '')..message;
+
+        language = defaultLanguage;
+    else
+        log(language, 'dosen\'t match', GetDefaultLanguage("player"))
+    end
+
+    log(message, {...});
+    if not messageAwatingNextResult or channel == "SAY" or channel == "YELL" or channel == "CHANNEL" then
+        log ('sending message immediately')
+        DMRP.Chat.chatHook(message, channel, language, ...)
+    else
+        log ('sending message delayed')
+        DMRP.Chat.nextRollMessage = {message, channel, language, ...}
+    end
+end

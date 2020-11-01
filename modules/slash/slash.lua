@@ -41,8 +41,9 @@ local function spreadSlashArgs(text)
     log("argList:", argList)
     return argList;
 end
+DMRP.Dice.spreadSlashArgs = spreadSlashArgs
 
-local diceRollTypes = {
+DMRP.Dice.diceRollTypes = {
     freeform = function(advantage)
         DMRP.Dice.doDiceRoll();
         if (advantage) then
@@ -63,7 +64,7 @@ local diceRollTypes = {
     end,
     heal = function(advantage)
         DMRP.Dice.doDiceRoll(4);
-        log('advantage', advantage)
+        log('heal advantage', advantage)
         if (advantage) then
             DMRP.Dice.doDiceRoll(4);
             log('rolling with advantage')
@@ -71,9 +72,9 @@ local diceRollTypes = {
             log('rolling')
         end
     end,
-    number = function(advantage, prams)
+    roll = function(advantage, prams)
         local i = 1;
-        if prams[i] == 'advantage' then i = i + 1 end
+        if prams[i] == 'advantage' or prams[i] == 'adv' then i = i + 1 end
         local size = prams[i] or 20; i = i + 1
         local modifier = prams[i] or 0
 
@@ -106,7 +107,7 @@ local function rollex(msg, editBox)
         advantage = true
         Dice.diceState('advantage', 2)
     end
-    if diceRollTypes[msg[1]] then diceRollTypes[msg[1]](advantage, msg) else diceRollTypes['number'](advantage, msg); end
+    if diceRollTypes[msg[1]] then diceRollTypes[msg[1]](advantage, msg) else diceRollTypes['roll'](advantage, msg); end
 end
 
 SlashCmdList["ROLLEX"] = rollex
@@ -119,6 +120,7 @@ SlashCmdList["EVENT"] = event
 
 local function dm(msg, editBox)
     -- handles generic DM actions
+
 end
 
 SlashCmdList["DM"] = dm
