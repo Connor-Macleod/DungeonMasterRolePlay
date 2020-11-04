@@ -17,23 +17,86 @@ local advantageRoll = { result = 0 }
 local diceAdvantage = 1;
 
 log("init dice");
+local function playerDCPasses(player, result, modifier)
+    result = tonumber(result)
+    local matchedActions = {}
+    for i, dc in ipairs(DMRP.Dice.dcs) do
+        local matchesDC = false
+        local isTargetted = false;
+        if dc.target then
+            for i, target in ipairs(dc.target) do
+                if Utils.getPlayerName(player) == Utils.getPlayerName(dc.target) then
+                    isTargetted = true
+                end
+            end
+        end
+
+        if not dc.target or isTargetted then
+
+            log(dc, type(dc.min))
+            if dc.min and dc.max and dc.min <= result and dc.max >= result then
+                log(dc.min, "and", dc.max,"and", dc.min <= result, "and", dc.max >= result, dc.action)
+                matchesDC = true;
+            elseif dc.min and not dc.max and dc.min <= result then
+                matchesDC = true;
+            elseif dc.max and not dc.min and dc.max >= result then
+                matchesDC = true;
+            elseif dc.nat and dc.nat == result - modifier then
+                matchesDC = true;
+            else
+                matchesDC = false;
+            end
+            log('matches DC?', matchesDC)
+        end
+        if matchesDC then
+            table.insert(matchedActions, dc.action);
+        end
+    end
+    log (matchedActions)
+    return matchedActions;
+end
+local damageResults = {}
+local function DCAction(actions, player)
+    local totalDamage = 0;
+    if not damageResults[player] then
+        damageResults[player] = {}
+        for i,v in ipairs(actions) do
+            if v.perception then
+                log (v.perception, "WHISPER", nil, Utils.getPlayerName(player))
+                DMRP.Chat.splitAndSendChat(v.perception, "WHISPER", nil, Utils.getPlayerName(player))
+            end
+            if v.dam then
+                damageResults[player].insert(v);
+                totalDamage = totalDamage + v.dam
+            end
+
+        end
+        if damageResults[player][2] then
+            DMRP.Chat.splitAndSendChat("You have dealt "..totalDamage.." damage this round!", "WHISPER", nil, Utils.getPlayerName(player))
+        end
+    end
+
+end
 
 local function diceRollMessage(playerName, rollResult, rollSize, modifier)
+    if (tonumber(rollSize) == 20) then
+        local DCPasses = playerDCPasses(playerName, rollResult, modifier);
+        DCAction(DCPasses, playerName)
+    end
     if DMRP.Chat.nextRollMessage and playerName == Utils.getPlayerName() then
         if not string.match(DMRP.Chat.nextRollMessage[1], '%$%{result%}') and not string.match(DMRP.Chat.nextRollMessage[1], '%$%{total%}') then
             DMRP.Chat.nextRollMessage[1] = DMRP.Chat.nextRollMessage[1].." (roll "..rollResult.."/"..rollSize+modifier..")"
         end
 
-
-
         DMRP.Chat.nextRollMessage[1] = DMRP.Chat.nextRollMessage[1]:gsub('%$%{result%}', rollResult)
         DMRP.Chat.nextRollMessage[1] = DMRP.Chat.nextRollMessage[1]:gsub('%$%{total%}', rollResult)
         DMRP.Chat.nextRollMessage[1] = DMRP.Chat.nextRollMessage[1]:gsub('%$%{max%}', rollSize)
         DMRP.Chat.nextRollMessage[1] = DMRP.Chat.nextRollMessage[1]:gsub('%$%{modifier%}', modifier)
-        DMRP.Chat.chatHook(unpack(DMRP.Chat.nextRollMessage));
+        DMRP.Chat.splitAndSendChat(unpack(DMRP.Chat.nextRollMessage));
         DMRP.Chat.nextRollMessage = nil;
     end
 end
+
 
 local lastRolls = {};
 local function reportDiceRolls(author, rollResult, rollSize, modifier)
@@ -109,8 +172,10 @@ if not AddOn_Chomp.IsAddonPrefixRegistered(PROTOCOL_PREFIX) then
 else
     AddOn_Chomp.HookAddonPrefix(PROTOCOL_PREFIX, TRPDiceRollHandler)
 end
+
 local function resetDice()
     lastRolls = {};
+    DMRP.Dice.dcs = {};
 end
 DMRP.Dice.resetDice = resetDice;
 

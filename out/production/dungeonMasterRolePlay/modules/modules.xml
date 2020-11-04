@@ -1,0 +1,8 @@
+<UI xmlns="http://www.blizzard.com/wow/ui/"   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"   xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
+    <Include file="utils\utils.xml" />
+    <Include file="core\core.xml" />
+    <Include file="compatibility\compatibility.xml" />
+    <Include file="chat\chat.xml" />
+    <Include file="dice\dice.xml" />
+    <Include file="slash\slash.xml" />
+</UI>

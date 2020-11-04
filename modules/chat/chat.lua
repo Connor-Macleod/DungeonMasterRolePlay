@@ -75,9 +75,6 @@ end
 
 DMRP.Chat.fakeChatMessage = fakeChatMessage;
 
-local function escape_pattern(text)
-    return text:gsub("([^%w])", "%%%1")
-end
 
 local LANGUAGES = {
     [1] = "Orcish",
@@ -113,16 +110,14 @@ local LANGUAGES = {
 
 DMRP.Chat.nextRollMessage = nil
 
-DMRP.Chat.chatHook = SendChatMessage;
-SendChatMessage = function(message, channel, language, ...)
+DMRP.Chat.originalSendChatMessage = SendChatMessage;
+local function hookSendChatMessageFunction(message, channel, language, ...)
     log(message, {...});
     local messageAwatingNextResult
     --get groupings
     for command in message:gmatch('%[[^%]]+%]') do
         local shouldRemove = false;
         local commandStripped = command:sub(2,-2);
-        log("performing command:", command,
-            string.match(commandStripped, "^"..'heal'))
         for i,v in pairs(DMRP.Dice.diceRollTypes) do
             if string.match(commandStripped, "^"..i) then
                 shouldRemove = true
@@ -140,12 +135,11 @@ SendChatMessage = function(message, channel, language, ...)
 
         end
 
-
         log(commandStripped);
-        log("removing", shouldRemove, escape_pattern(command));
+        log("removing", shouldRemove, DMRP.Utils.escapePattern(command));
 
         if shouldRemove then
-            message = message:gsub(escape_pattern(command).." *", '')
+            message = message:gsub(DMRP.Utils.escapePattern(command).." *", '')
         end
     end
     local _, defaultLanguage = GetDefaultLanguage("player")
@@ -160,12 +154,84 @@ SendChatMessage = function(message, channel, language, ...)
         log(language, 'dosen\'t match', GetDefaultLanguage("player"))
     end
 
+
     log(message, {...});
     if not messageAwatingNextResult or channel == "SAY" or channel == "YELL" or channel == "CHANNEL" then
         log ('sending message immediately')
-        DMRP.Chat.chatHook(message, channel, language, ...)
+        DMRP.Chat.splitAndSendChat(message, channel, language, ...)
     else
         log ('sending message delayed')
         DMRP.Chat.nextRollMessage = {message, channel, language, ...}
     end
 end
+SendChatMessage = hookSendChatMessageFunction;
+
+local function splitAndSendChat(message, channel, language, target, ...)
+    log(message);
+
+    local messageLength = 0;
+    if type(message) == 'string' then
+        messageLength = #message
+    else
+        for i,msg in ipairs(message) do
+            messageLength = messageLength + #msg
+        end
+    end
+    local messages = {}
+    local i = 1;
+    if messageLength >= 250 then
+        local words = {}
+        if type(message) == 'string' then
+            words = DMRP.Dice.spreadSlashArgs(message);
+        else
+            words = message
+        end
+        for j, msg in ipairs(words) do
+            local punctuation = msg:sub(-2,-1)
+            if messages[i] and (#(messages[i]..msg) > 200 or ((punctuation=="." or punctuation=="," or punctuation==";" or punctuation==":" or punctuation=="?" or punctuation=="!") and #(messages[i]..msg) > 150)) then
+                i = i+1
+            end
+            messages[i] = messages[i] and messages[i].." "..msg or (channel == "EMOTE" and "|| ".. msg) or msg;
+        end
+    else
+
+        if type(message) == 'string' then
+            messages = {message}
+        else
+            local msgString = ''
+
+            for i,msg in ipairs(message) do
+                msgString = msgString ..' '.. msg
+            end
+            messages = {msgString}
+
+        end
+    end
+
+    --we restore the original SendChatMessage function while chomp is queing up messages
+    SendChatMessage = DMRP.Chat.originalSendChatMessage;
+    for j,v in ipairs(messages) do
+        if i > 1 then
+            v = v .. " [part " .. j .. " of " .. i .. "]";
+        end
+        AddOn_Chomp.SendChatMessage(v, channel, language, target, nil, "DMRP", nil, nil)
+    end
+    SendChatMessage = hookSendChatMessageFunction
+end
+DMRP.Chat.splitAndSendChat = splitAndSendChat
+
+local function onInit()
+    for i = 1, NUM_CHAT_WINDOWS do
+        local editbox = _G["ChatFrame" .. i .. "EditBox"]
+        editbox:SetMaxLetters( 0 )
+        editbox:SetMaxBytes( 0 )
+        -- A Blizzard dev added this function just for us. Without this, it
+        --  would be absolute hell to get this addon to work with the default
+        --  chat boxes, if not impossible. I'd have to create a whole new
+        --  chatting interface.
+        if editbox.SetVisibleTextByteLimit then
+            editbox:SetVisibleTextByteLimit( 0 )
+        end
+    end
+end
+onInit()

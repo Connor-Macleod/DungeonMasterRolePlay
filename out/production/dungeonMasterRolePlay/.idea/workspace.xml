@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="16f29259-2b43-4048-a0cc-0adedf8e2492" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Lua Script" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectId" id="1jFpJir5ZvdVqK2XH2DPPXDK8Q7" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="jdk.selected.LUA_MODULE" value="LuaJ" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/modules/compatibility" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.path.for.package.eslint" value="project" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="project.structure.last.edited" value="SDKs" />
+    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.side.proportion" value="0.2" />
+    <property name="settings.editor.selected.configurable" value="preferences.remoteExternalTools" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/modules/core" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/modules/compatibility" />
+      <recent name="$PROJECT_DIR$/modules/chat" />
+      <recent name="$PROJECT_DIR$/modules/slash" />
+      <recent name="$PROJECT_DIR$/modules" />
+      <recent name="$PROJECT_DIR$/modules/dice" />
+    </key>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="16f29259-2b43-4048-a0cc-0adedf8e2492" name="Default Changelist" comment="" />
+      <created>1603409624904</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1603409624904</updated>
+      <workItem from="1603409626725" duration="13378000" />
+      <workItem from="1603591587862" duration="1904000" />
+      <workItem from="1603625935452" duration="23426000" />
+      <workItem from="1603704079696" duration="12125000" />
+      <workItem from="1603798991631" duration="30554000" />
+      <workItem from="1604147366450" duration="770000" />
+      <workItem from="1604149769606" duration="33124000" />
+      <workItem from="1604233888135" duration="11735000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="492" y="322" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1603459953858">
+      <screen x="0" y="0" width="1680" height="1050" />
+    </state>
+    <state x="492" y="322" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1680.1050@0.0.1680.1050" timestamp="1603459953858" />
+    <state x="492" y="326" key="#com.intellij.fileTypes.FileTypeChooser/0.23.1680.989@0.23.1680.989" timestamp="1603409688157" />
+    <state x="341" y="141" key="SettingsEditor" timestamp="1603624875822">
+      <screen x="0" y="0" width="1680" height="1050" />
+    </state>
+    <state x="341" y="141" key="SettingsEditor/0.0.1680.1050@0.0.1680.1050" timestamp="1603624875822" />
+    <state x="341" y="156" key="SettingsEditor/0.23.1680.989@0.23.1680.989" timestamp="1603410036061" />
+    <state x="541" y="280" width="667" height="612" key="find.popup" timestamp="1604368211536">
+      <screen x="0" y="0" width="1680" height="1050" />
+    </state>
+    <state x="541" y="280" width="667" height="612" key="find.popup/0.0.1680.1050@0.0.1680.1050" timestamp="1604368211536" />
+    <state x="473" y="210" key="new project wizard" timestamp="1604151007295">
+      <screen x="0" y="0" width="1680" height="1050" />
+    </state>
+    <state x="473" y="210" key="new project wizard/0.0.1680.1050@0.0.1680.1050" timestamp="1604151007295" />
+    <state x="505" y="233" width="670" height="676" key="search.everywhere.popup" timestamp="1604151254887">
+      <screen x="0" y="0" width="1680" height="1050" />
+    </state>
+    <state x="505" y="233" width="670" height="676" key="search.everywhere.popup/0.0.1680.1050@0.0.1680.1050" timestamp="1604151254887" />
+  </component>
+</project>
