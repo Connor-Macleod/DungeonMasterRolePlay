@@ -3,8 +3,15 @@
     <Include file="libs\LibStub\LibStub.lua"/>
     <Include file="libs\Chomp\Chomp.xml"/>
     <Include file="libs\LibDeflate\lib.xml"/>
+    <Include file="libs\AceAddon-3.0\AceAddon-3.0.xml"/>
+    <Include file="libs\AceGUI-3.0\AceGUI-3.0.xml"/>
+    <Include file="libs\AceDB-3.0\AceDB-3.0.xml"/>
+    <Include file="libs\AceDBOptions-3.0\AceDBOptions-3.0.xml"/>
+    <Include file="libs\AceConfig-3.0\AceConfig-3.0.xml"/>
+    <Include file="libs\LibWindow-1.1\LibWindow-1.1\LibWindow-1.1.lua"/>
+    <Include file="libs\CallbackHandler-1.0\CallbackHandler-1.0.xml"/>
 
     <!--Our stuff-->
-    <Include file="modules\modules.xml" />
     <Include file="DMRP.lua" />
+    <Include file="modules\modules.xml" />
 </UI>

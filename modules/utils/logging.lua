@@ -4,8 +4,6 @@
 --|Time: 14:07           |
 --#======================#
 
-local debug = false
-
 DMRP = DMRP or {}
 
 DMRP.Utils = DMRP.Utils or {};
@@ -45,14 +43,14 @@ local function expandTable(table)
 end
 
 local function log(...)
-    if not debug then return end
+    if true and (not DMRP.Utils.config or not DMRP.Utils.config.debug) then return end
     local printString = '';
     for i,v in pairs({...}) do
         local addString = ''
         if type(v)=='table'then
             addString = expandTable(v)
         elseif type(v)=='function' then
-            addString = 'function()';
+            addString = 'function('..tostring(v)..')';
         else
 
             addString = tostring(v)
@@ -62,3 +60,7 @@ local function log(...)
     print("[DMRP:DEBUG]"..printString);
 end
 DMRP.Utils.log = log;
+
+
+
+

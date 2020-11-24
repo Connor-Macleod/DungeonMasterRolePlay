@@ -28,8 +28,17 @@ DMRP.Compat.listener.isLoaded = isLoaded;
 
 
 local function addMessageToListener(message, channel, author, guid)
-    if not Utils.config.showInListener then return end
+    if not DMRP.addon.db.profile.showInListener then return end
     local author = getPlayerName(author)
+    if channel == 'SYSTEM' then
+        channel = "EMOTE"
+        local colours = ChatTypeInfo['SYSTEM']
+        local messageColour = string.format("|cFF%.2x%.2x%.2x", colours.r*255, colours.g*255, colours.b*255)
+
+        message = messageColour..message..'|r'
+    end
+
+    DMRP.Utils.log("CHAT_MSG_"..channel)
     ListenerAddon:OnChatMsg("CHAT_MSG_"..channel, message, author, nil, nil, nil, nil, nil, nil,
         nil, nil, nil, guid, nil, nil)
 end

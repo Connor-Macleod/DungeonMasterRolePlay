@@ -10,22 +10,47 @@ local chatMessage = DMRP.Chat.fakeChatMessage;
 local LibDeflate = LibStub:GetLibrary("LibDeflate");
 local CreateFrame = CreateFrame;
 local Utils = DMRP.Utils;
-local config, log = Utils.config, Utils.log;
+local log = Utils.log;
 
 local currentDiceState = 'individual';
 local advantageRoll = { result = 0 }
 local diceAdvantage = 1;
 
+DMRP.Dice.latestRolls = {};
+
+local function playerInList(target, player)
+
+    for i,targ in ipairs(target) do
+        log("comparing", player, targ)
+        if player == targ then
+            return true;
+        end
+    end
+    return false;
+end
+DMRP.Utils.playerInList = playerInList
+
 log("init dice");
 local function playerDCPasses(player, result, modifier)
     result = tonumber(result)
+
+    if modifier == 0 then
+        for i,mod in ipairs(DMRP.Dice.mods) do
+            if not mod.target or playerInList(mod.target, player) then
+                result = result + mod.mod;
+                modifier = modifier + mod.mod;
+            end
+        end
+    end
+
+
     local matchedActions = {}
     for i, dc in ipairs(DMRP.Dice.dcs) do
         local matchesDC = false
         local isTargetted = false;
         if dc.target then
             for i, target in ipairs(dc.target) do
-                if Utils.getPlayerName(player) == Utils.getPlayerName(dc.target) then
+                if Utils.getPlayerName(player) == Utils.getPlayerName(target) then
                     isTargetted = true
                 end
             end
@@ -52,65 +77,107 @@ local function playerDCPasses(player, result, modifier)
             table.insert(matchedActions, dc.action);
         end
     end
-    log (matchedActions)
+    DMRP.Dice.latestRolls[Utils.getPlayerName(player)].actions = matchedActions
     return matchedActions;
 end
 local damageResults = {}
+local killResults = {}
+local hpResults = {}
 local function DCAction(actions, player)
     local totalDamage = 0;
+    local totalKill = 0;
+    local totalHP = 0;
+    log('Results', damageResults, killResults, hpResults)
     if not damageResults[player] then
         damageResults[player] = {}
+        killResults[player] = {}
+        hpResults[player] = {}
         for i,v in ipairs(actions) do
             if v.perception then
                 log (v.perception, "WHISPER", nil, Utils.getPlayerName(player))
                 DMRP.Chat.splitAndSendChat(v.perception, "WHISPER", nil, Utils.getPlayerName(player))
             end
             if v.dam then
-                damageResults[player].insert(v);
+                table.insert(damageResults[player], v);
                 totalDamage = totalDamage + v.dam
+            end
+            if v.kill then
+                table.insert(killResults[player], v);
+                totalKill = totalKill + v.kill
+            end
+            if v.hp then
+                table.insert(hpResults[player], v);
+                totalHP = totalHP + v.hp
             end
 
         end
-        if damageResults[player][2] then
+        log('Results', damageResults, killResults, hpResults)
+        if totalDamage ~= 0 then
             DMRP.Chat.splitAndSendChat("You have dealt "..totalDamage.." damage this round!", "WHISPER", nil, Utils.getPlayerName(player))
+        end
+        if totalKill ~= 0 then
+            DMRP.Chat.splitAndSendChat("You have killed "..totalKill.." enemies this round!", "WHISPER", nil, Utils.getPlayerName(player))
+        end
+        if totalHP ~= 0 then
+            DMRP.Chat.splitAndSendChat("You have taken "..-totalHP.." damage this round!", "WHISPER", nil, Utils.getPlayerName(player))
         end
     end
 
 end
 
+
+local actionQueue = {}
+local function QueueDiceRollAction(callback, size, modifier, player)
+    if player then player = Utils.getPlayerName(player) end
+    modifier = modifier or 0
+    size = size or 20
+    actionQueue[size..'+'..modifier..(player and ':'..player or '')] = actionQueue[size..'+'..modifier..(player and ':'..player or '')] or {};
+    table.insert(actionQueue[size..'+'..modifier..(player and ':'..player or '')], callback);
+end
+
+DMRP.Dice.QueueDiceRollAction = QueueDiceRollAction;
+
+local function DoDiceRollAction(total, size, modifier, player)
+    if player then player = Utils.getPlayerName(player) end
+    modifier = modifier or 0
+    if actionQueue[size..'+'..modifier..':'..player ] then
+        for i, callback in ipairs(actionQueue[size..'+'..modifier..':'..player ]) do
+            callback(total, size, modifier);
+            table.remove(actionQueue[size..'+'..modifier..':'..player ], i)
+            return;
+        end
+    end
+    if actionQueue[size..'+'..modifier] then
+        for i, callback in ipairs(actionQueue[size..'+'..modifier]) do
+            callback(total, size, modifier);
+            table.remove(actionQueue[size..'+'..modifier], i)
+            return;
+        end
+    end
+
+end
 local function diceRollMessage(playerName, rollResult, rollSize, modifier)
     if (tonumber(rollSize) == 20) then
         local DCPasses = playerDCPasses(playerName, rollResult, modifier);
-        DCAction(DCPasses, playerName)
+        DCAction(DCPasses, playerName);
     end
-    if DMRP.Chat.nextRollMessage and playerName == Utils.getPlayerName() then
-        if not string.match(DMRP.Chat.nextRollMessage[1], '%$%{result%}') and not string.match(DMRP.Chat.nextRollMessage[1], '%$%{total%}') then
-            DMRP.Chat.nextRollMessage[1] = DMRP.Chat.nextRollMessage[1].." (roll "..rollResult.."/"..rollSize+modifier..")"
-        end
 
-        DMRP.Chat.nextRollMessage[1] = DMRP.Chat.nextRollMessage[1]:gsub('%$%{result%}', rollResult)
-        DMRP.Chat.nextRollMessage[1] = DMRP.Chat.nextRollMessage[1]:gsub('%$%{total%}', rollResult)
-        DMRP.Chat.nextRollMessage[1] = DMRP.Chat.nextRollMessage[1]:gsub('%$%{max%}', rollSize)
-        DMRP.Chat.nextRollMessage[1] = DMRP.Chat.nextRollMessage[1]:gsub('%$%{modifier%}', modifier)
-        DMRP.Chat.splitAndSendChat(unpack(DMRP.Chat.nextRollMessage));
-        DMRP.Chat.nextRollMessage = nil;
-    end
+    DoDiceRollAction(rollResult, rollSize, modifier, playerName)
 end
 
-
-local lastRolls = {};
 local function reportDiceRolls(author, rollResult, rollSize, modifier)
     local playerName = Utils.getPlayerName(author)
     if currentDiceState == 'advantage' and playerName == Utils.getPlayerName() then
         if tonumber(rollResult) > advantageRoll.result then
-            advantageRoll = {result = tonumber(rollResult), diceSize = rollSize, modifier = modifier, diceCount = 1}
+            log(DMRP.Dice.latestRolls)
+            advantageRoll = {result = tonumber(rollResult), diceSize = rollSize, modifier = modifier, diceCount = 1, actions = ((DMRP.Dice.latestRolls[playerName] and DMRP.Dice.latestRolls[playerName].actions) or {})}
         end
         diceAdvantage = diceAdvantage - 1;
         if diceAdvantage < 1 then
-            lastRolls[playerName] = advantageRoll;
+            DMRP.Dice.latestRolls[playerName] = advantageRoll;
             diceAdvantage = 1;
             currentDiceState = 'individual'
-            chatMessage("rolls "..advantageRoll.result.." on a d"..advantageRoll.diceSize .. (advantageRoll.modifier == 0 and "" or ((advantageRoll.modifier > 0 and "+" or "-")..advantageRoll.modifier)).." with advantage.", "EMOTE",author)
+            chatMessage("rolls "..advantageRoll.result.." on a d"..advantageRoll.diceSize .. (advantageRoll.modifier == 0 and "" or ((advantageRoll.modifier > 0 and "+" or "-")..advantageRoll.modifier)).." with advantage.", "SYSTEM",author)
 
             diceRollMessage(playerName, advantageRoll.result, advantageRoll.diceSize, advantageRoll.modifier)
 
@@ -118,11 +185,11 @@ local function reportDiceRolls(author, rollResult, rollSize, modifier)
 
         end
     else
-        lastRolls[playerName] = {result = rollResult, diceSize = rollSize, modifier = modifier, diceCount = 1}
-        chatMessage("rolls "..rollResult.." on a d"..rollSize .. (modifier == 0 and "" or ((modifier > 0 and "+" or "-")..modifier)), "EMOTE", author)
+        DMRP.Dice.latestRolls[playerName] = {result = rollResult, diceSize = rollSize, modifier = modifier, diceCount = 1, actions = (DMRP.Dice.latestRolls[playerName] and DMRP.Dice.latestRolls[playerName].actions) or {}}
+        chatMessage("rolls "..rollResult.." on a d"..rollSize .. (modifier == 0 and "" or ((modifier > 0 and "+" or "-")..modifier)), "SYSTEM", author)
         diceRollMessage(playerName, rollResult, rollSize, modifier)
     end
-    DMRP.Chat.nextRollSilent = false;
+    DMRP.UI.updateRollHistory();
 end
 
 
@@ -154,28 +221,40 @@ local PROTOCOL_SETTINGS = {
     broadcastPrefix = "TRP3.3"
 }
 local function TRPDiceRollHandler(arg1, addonContent, channel, sender)
+
     local decodedCompressedData = LibDeflate:DecodeForWoWChatChannel(addonContent:sub(3, -1));
     if not decodedCompressedData then return end
     local deflatedContent = LibDeflate:DecompressDeflate(decodedCompressedData);
     if not decodedCompressedData then return end
     local deserializedContent = AddOn_Chomp.Deserialize(deflatedContent);
     if not deserializedContent then return end
-    log (type(deserializedContent), deserializedContent, deserializedContent.modulePrefix)
     if deserializedContent.modulePrefix == 'DISN' then
         reportDiceRolls(sender, deserializedContent.data.t, deserializedContent.data.d, deserializedContent.data.m)
     else
-        log("prefix should be DISM", deserializedContent.modulePrefix)
     end
 end
 if not AddOn_Chomp.IsAddonPrefixRegistered(PROTOCOL_PREFIX) then
+    log('registering chomp prefix')
     AddOn_Chomp.RegisterAddonPrefix(PROTOCOL_PREFIX, TRPDiceRollHandler, PROTOCOL_SETTINGS)
 else
+    log('hooking chomp prefix')
     AddOn_Chomp.HookAddonPrefix(PROTOCOL_PREFIX, TRPDiceRollHandler)
 end
 
 local function resetDice()
-    lastRolls = {};
+    DMRP.Dice.latestRolls = {};
     DMRP.Dice.dcs = {};
+    damageResults = {};
+    killResults = {}
+    hpResults = {}
+
+
+    for i,mod in ipairs(DMRP.Dice.mods) do
+        mod.roundCount = mod.roundCount - 1
+        if mod.roundCount == 0 then
+            table.remove(DMRP.Dice.mods, i)
+        end
+    end
 end
 DMRP.Dice.resetDice = resetDice;
 
@@ -184,7 +263,7 @@ local function doDiceRoll(size, count, modifier)
     count = tonumber(count) or 1;
     modifier = tonumber(modifier) or 0;
 
-    if config.rollType == 'ingame' then
+    if DMRP.addon.db.profile.rollType == 'ingame' then
         for i=1,count do
             RandomRoll(modifier+1, size+modifier)
         end

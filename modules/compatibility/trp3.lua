@@ -7,9 +7,94 @@
 
 DMRP.Compat = DMRP.Compat or {};
 DMRP.Compat.TRP3 = DMRP.Compat.TRP3 or {}
-
 local Utils = DMRP.Utils;
-local config, log = Utils.config, Utils.log;
+local log = Utils.log;
+
+
+local function replaceStat(string)
+    for command in string:gmatch('%$%{[Dd][Mm][Rr][Pp]:[^%}]+%}') do
+        local commandStripped = command:sub(8, -2);
+        local arguments = DMRP.Dice.spreadSlashArgs(commandStripped)
+
+        local tracker = DMRP.Tracker.checkTracker(arguments[1])
+        if arguments[2] and  arguments[2]:match('^[\'"]')  and  arguments[2]:match('[\'"]$') then
+            arguments[2] = arguments[2]:sub(2, -2);
+        end
+        local shieldColour
+        local trackerColour = string.format("|c%.2x%.2x%.2x%.2x", tracker.amountColour[4]*255, tracker.amountColour[1]*255, tracker.amountColour[2]*255, tracker.amountColour[3]*255)
+        if tracker.shield and tracker.shield > 0 then
+            shieldColour = string.format("|c%.2x%.2x%.2x%.2x", tracker.shieldColour[4]*255, tracker.shieldColour[1]*255, tracker.shieldColour[2]*255, tracker.shieldColour[3]*255)
+        end
+
+
+        local replacement = trackerColour..tracker.current..(tracker.shield and tracker.shield > 0 and (shieldColour.."+"..tracker.shield..'|r') or '')..'/'..tracker.max..'|r'
+
+        string = string:gsub(DMRP.Utils.escapePattern(command), replacement)
+
+    end
+    return string;
+end
+DMRP.Compat.TRP3.replaceStat = replaceStat;
+
+local function hook()
+    log('hooking')
+    local originalRegisterPrefix = AddOn_TotalRP3.Communications.registerSubSystemPrefix
+    AddOn_TotalRP3.Communications.registerSubSystemPrefix = function(event, callback, handlerID)
+        if event == "GI" then
+            originalRegisterPrefix(event, function(informationType, senderID,...)
+
+                local playerAPI = TRP3_API.register.player;
+                local getCharExchangeData = playerAPI.getCharacteristicsExchangeData;
+                local getAboutExchangeData = playerAPI.getAboutExchangeData;
+                local getMiscExchangeData = playerAPI.getMiscExchangeData;
+                local Comm = AddOn_TotalRP3.Communications;
+
+
+                local getCharacterExchangeData = TRP3_API.dashboard.getCharacterExchangeData;
+                local getCompanionData = TRP3_API.companions.player.getCompanionData;
+                local COMPANION_PREFIX = "comp_";
+                local INFO_TYPE_SEND_PREFIX = "SI";
+                local INFO_TYPE_SEND_PRIORITY = Comm.PRIORITIES.LOW;
+
+                --todo: Hack the fuck out of people's TRP profiles!
+                local data;
+                if informationType == TRP3_API.register.registerInfoTypes.CHARACTERISTICS then
+                    data = getCharExchangeData();
+                elseif informationType == TRP3_API.register.registerInfoTypes.ABOUT then
+                    data = getAboutExchangeData();
+                elseif informationType == TRP3_API.register.registerInfoTypes.MISC then
+                    data = getMiscExchangeData();
+                elseif informationType == TRP3_API.register.registerInfoTypes.CHARACTER then
+                    data = getCharacterExchangeData();
+                elseif informationType:sub(1, COMPANION_PREFIX:len()) == COMPANION_PREFIX then
+                    local v = informationType:sub(COMPANION_PREFIX:len() + 1, COMPANION_PREFIX:len() + 1);
+                    local profileID = informationType:sub(COMPANION_PREFIX:len() + 2);
+                    data = getCompanionData(profileID, v);
+                end
+                log('sending profile!', informationType, senderID, data)
+                local moddedData = {}
+                for orig_key, orig_value in pairs(data) do
+                    moddedData[orig_key] = orig_value
+                end
+                if moddedData.CO then
+                    moddedData.CO = replaceStat(moddedData.CO)
+                end
+                if moddedData.CU then
+                    moddedData.CU = replaceStat(moddedData.CU)
+                end
+                if moddedData then
+                    log(("Send %s info to %s"):format(informationType, senderID));
+                    AddOn_TotalRP3.Communications.sendObject(INFO_TYPE_SEND_PREFIX, {informationType, moddedData}, senderID, INFO_TYPE_SEND_PRIORITY, nil, true);
+                end
+
+            end, handlerID)
+        else
+            originalRegisterPrefix(event, callback, handlerID)
+        end
+
+    end
+    log('hooked TRP functions')
+end
 
 local trp3IsLoaded = false;
 
@@ -20,11 +105,19 @@ local function isLoaded()
 
     if _G.TRP3_API then
         trp3IsLoaded = true;
+        hook();
         return true;
     end
     return false
 end
 DMRP.Compat.TRP3.isLoaded = isLoaded;
+
+
+local f = CreateFrame("Frame")
+f:RegisterEvent("ADDON_LOADED")
+f:SetScript("OnEvent", function()
+    isLoaded();
+end)
 
 local CLASSIDS = {
     "WARRIOR",
@@ -41,6 +134,15 @@ local CLASSIDS = {
     "DEMONHUNTER"
 }
 
+local function getCharacterInfo (unitID)
+    if unitID == TRP3_API.globals.player_id then
+        return TRP3_API.profile.getData("player");
+    elseif TRP3_API.register.isUnitIDKnown(unitID) then
+        return TRP3_API.register.getUnitIDCurrentProfile(unitID) or {};
+    end
+    return {};
+end
+DMRP.Compat.TRP3.getCharacterInfo= getCharacterInfo;
 local function colouredNameWithoutGUID(fallback, event, arg1, unitID, arg3, arg4, arg5, arg6, arg7, channelNumber, arg9, arg10, messageID, arg12, ...)
     --This is a modified version of TRP3's GetColouredName function, functionality is similar, excepting it does not require GUID,
     -- as we'll occationally want to get a coloured name when a GUID isn't available, for example, dice rolls.
@@ -120,4 +222,3 @@ local function colouredNameWithoutGUID(fallback, event, arg1, unitID, arg3, arg4
 end
 
 DMRP.Compat.TRP3.colouredNameWithoutGUID = colouredNameWithoutGUID;
-

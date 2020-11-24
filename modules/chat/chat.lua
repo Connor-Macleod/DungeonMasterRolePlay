@@ -16,11 +16,22 @@ local CHAT_TYPE = {
         local emoteInfo = ChatTypeInfo["EMOTE"]
         local authorSeparator = " ";
         if message:sub(1, 3) == "'s " or message:sub(1, 2) == ", " then
-        -- Added support for , at the start of an emote
+            -- Added support for , at the start of an emote
             local authorSeparator = "";
         end
         local authorRealmName = getPlayerName(author)
         return GetPlayerLink(getPlayerName(author), DMRP.Utils.GetPlayerColoredName("CHAT_MSG_EMOTE", authorRealmName, messageID))..authorSeparator..message, emoteInfo.r, emoteInfo.g, emoteInfo.b
+    end,
+
+    SYSTEM = function(message, author, guid, messageID)
+        local systemInfo = ChatTypeInfo["SYSTEM"]
+        local authorSeparator = " ";
+        if message:sub(1, 3) == "'s " or message:sub(1, 2) == ", " then
+            -- Added support for , at the start of an emote
+            local authorSeparator = "";
+        end
+        local authorRealmName = getPlayerName(author)
+        return GetPlayerLink(getPlayerName(author), DMRP.Utils.GetPlayerColoredName("CHAT_MSG_EMOTE", authorRealmName, messageID))..authorSeparator..message, systemInfo.r, systemInfo.g, systemInfo.b
     end
 }
 
@@ -60,6 +71,7 @@ local function printToChatChannel(text, channel, r, g, b)
     end
 end
 local function fakeChatMessage(message, channel, author, guid, messageID)
+
     local formattedMessage, r, g, b = CHAT_TYPE[channel](message, author, guid, messageID);
     if (not formattedMessage) then
         local playerName = DMRP.Utils.GetPlayerColoredName("CHAT_MSG_"..channel, author, messageID)
@@ -113,24 +125,28 @@ DMRP.Chat.nextRollMessage = nil
 DMRP.Chat.originalSendChatMessage = SendChatMessage;
 local function hookSendChatMessageFunction(message, channel, language, ...)
     log(message, {...});
-    local messageAwatingNextResult
+    local awaitingResults = {};
     --get groupings
     for command in message:gmatch('%[[^%]]+%]') do
         local shouldRemove = false;
         local commandStripped = command:sub(2,-2);
-        for i,v in pairs(DMRP.Dice.diceRollTypes) do
-            if string.match(commandStripped, "^"..i) then
+        log('commandStripped', commandStripped)
+        log('DMRP.Utils.config.profile.rolls', DMRP.Utils.config.profile.rolls)
+        for i,v in pairs(DMRP.Utils.config.profile.rolls) do
+            log('matching '..commandStripped..' with '..i)
+            if string.match(commandStripped, "^"..i..' ') or string.match(commandStripped, "^"..i..'$') then
+                log('matched '..commandStripped..' with '..i)
                 shouldRemove = true
                 local prams = DMRP.Dice.spreadSlashArgs(commandStripped)
                 table.remove(prams, 1);
                 if string.match(commandStripped, "adv") then
                     DMRP.Dice.diceState('advantage', 2)
-                    v(true, prams)
+                    table.insert(awaitingResults, DMRP.Dice.evalDiceRoll(i, true, prams))
                 else
-                    v(false, prams)
+                    table.insert(awaitingResults, DMRP.Dice.evalDiceRoll(i, false, prams))
                 end
 
-                messageAwatingNextResult = true;
+
             end
 
         end
@@ -156,12 +172,40 @@ local function hookSendChatMessageFunction(message, channel, language, ...)
 
 
     log(message, {...});
-    if not messageAwatingNextResult or channel == "SAY" or channel == "YELL" or channel == "CHANNEL" then
+    if not awaitingResults[1] or channel == "SAY" or channel == "YELL" or channel == "CHANNEL" then
         log ('sending message immediately')
         DMRP.Chat.splitAndSendChat(message, channel, language, ...)
     else
         log ('sending message delayed')
-        DMRP.Chat.nextRollMessage = {message, channel, language, ...}
+        local args = {... }
+        for id, props in ipairs(awaitingResults) do
+            DMRP.Dice.QueueDiceRollAction(function(rollResult, rollSize, modifier)
+                log('props',props)
+                if not string.match(message, '%$%{result%}') and not string.match(message, '%$%{total%}') and not string.match(message, '%$%{result'..id..'%}') and not string.match(message, '%$%{total'..id..'%}') then
+                    message = message.." (roll "..rollResult.."/"..rollSize+modifier..((props.adv and " adv") or '')..")"
+                end
+
+                message = message:gsub('%$%{result%}', rollResult)
+                message = message:gsub('%$%{total%}', rollResult)
+                message = message:gsub('%$%{max%}', rollSize)
+                message = message:gsub('%$%{modifier%}', modifier)
+
+                message = message:gsub('%$%{result'..id..'%}', rollResult)
+                message = message:gsub('%$%{total'..id..'%}', rollResult)
+                message = message:gsub('%$%{max'..id..'%}', rollSize)
+                message = message:gsub('%$%{modifier'..id..'%}', modifier)
+                log('id', id, #awaitingResults, awaitingResults)
+                if id == #awaitingResults then
+                    log('equals', id == #awaitingResults)
+                    DMRP.Chat.splitAndSendChat(message, channel, language, unpack(args));
+                else
+
+                    log('does not equal', id == #awaitingResults)
+                end
+            end, props.size, props.modifier)
+
+        end
+
     end
 end
 SendChatMessage = hookSendChatMessageFunction;
@@ -219,6 +263,30 @@ local function splitAndSendChat(message, channel, language, target, ...)
     SendChatMessage = hookSendChatMessageFunction
 end
 DMRP.Chat.splitAndSendChat = splitAndSendChat
+
+DMRP.Chat.lastEmotes = {}
+local f = CreateFrame("frame")
+f:RegisterEvent("CHAT_MSG_EMOTE")
+f:RegisterEvent("CHAT_MSG_RAID")
+f:RegisterEvent("CHAT_MSG_RAID_LEADER")
+f:SetScript("OnEvent", function(self, event, message, player,...)
+
+    if event == "CHAT_MSG_EMOTE" or event == "CHAT_MSG_RAID" or event == "CHAT_MSG_RAID_LEADER" then
+        log("message parsing",DMRP.Chat.lastEmotes);
+        local fullPlayerName = DMRP.Utils.getPlayerName(player)
+
+        DMRP.Chat.lastEmotes[fullPlayerName] = DMRP.Chat.lastEmotes[fullPlayerName] or {};
+        if (DMRP.Chat.lastEmotes[fullPlayerName][5]) then
+            table.remove(DMRP.Chat.lastEmotes[fullPlayerName], 1);
+        end
+        table.insert(DMRP.Chat.lastEmotes[fullPlayerName], {message = message, channel = event});
+        log("last emotes",DMRP.Chat.lastEmotes);
+        DMRP.UI.updateRollHistory();
+    end
+
+end)
+
+
 
 local function onInit()
     for i = 1, NUM_CHAT_WINDOWS do

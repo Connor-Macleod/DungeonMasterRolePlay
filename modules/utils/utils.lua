@@ -56,7 +56,8 @@ DMRP.Utils.escapePattern = escapePattern;
 
 --this is ugly AF, but it caches GUIDs when they're available.
 local function colouredNameReplacer(event, arg1,player,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,GUID)
-    if player and GUID then
+    log(event, arg1,player,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,GUID)
+    if player and GUID and event ~= 'CHAT_MSG_CHANNEL' then
         getPlayerGuidCached(player, GUID);
     end
 end
