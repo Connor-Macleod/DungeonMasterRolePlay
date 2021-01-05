@@ -38,7 +38,6 @@ local function addMessageToListener(message, channel, author, guid)
         message = messageColour..message..'|r'
     end
 
-    DMRP.Utils.log("CHAT_MSG_"..channel)
     ListenerAddon:OnChatMsg("CHAT_MSG_"..channel, message, author, nil, nil, nil, nil, nil, nil,
         nil, nil, nil, guid, nil, nil)
 end

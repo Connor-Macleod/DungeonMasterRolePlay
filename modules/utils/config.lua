@@ -12,6 +12,7 @@ local Utils = DMRP.Utils
 Utils.config = Utils.config or {};
 local log = Utils.log;
 local LibStub = LibStub
+DMRP.Utils.version = GetAddOnMetadata("DungeonMasterRolePlay", "Version")
 
 local unpack = unpack or table.unpack
 
@@ -66,12 +67,15 @@ function DMRP.addon:OnInitialize()
                 easyKill = "[dc 8-14 1kill] [dc 15-18 2kill] [dc >18 3kill]",
                 medKill = "[dc 12-17 1kill] [dc >17 2kill]",
                 hardKill = "[dc >17 1kill]",
+            },
+            enabledChatFrames = {
+                [1] = true
             }
         }
     }
     self.db = LibStub("AceDB-3.0"):New("DMRPConfig", defaultConfig, true)
     DMRP.Utils.config = self.db
-
+    log ('DMRP loaded', DMRP.Utils.version)
     self.db.RegisterCallback(self, "OnProfileChanged", "RefreshConfig")
     self.db.RegisterCallback(self, "OnProfileCopied", "RefreshConfig")
     self.db.RegisterCallback(self, "OnProfileReset", "RefreshConfig")
@@ -318,7 +322,6 @@ function DMRP.addon:OnInitialize()
                     type = 'input',
                     order = 5,
                     validate = function(_, val)
-                        log(val, string.find('^%d*$', val))
                         if not string.find(val, '^%d*$') then
                             return 'Overcharge Maximum must be a number!'
                         end
@@ -678,13 +681,36 @@ function DMRP.addon:OnInitialize()
         return optsTable
     end);
     AceConfigDialog:AddToBlizOptions("DMRP", "DMRP");
+
+
 end
 
+
+local f = CreateFrame("frame")
+f:RegisterEvent("GROUP_ROSTER_UPDATE")
+f:RegisterEvent("PLAYER_ENTERING_WORLD")
+f:SetScript("OnEvent", function(self, event, message, addonContent,...)
+    if event == 'PLAYER_ENTERING_WORLD' then
+
+        for i, v in pairs(DMRP.Utils.config.profile.enabledChatFrames) do
+            local chatFrame = _G["ChatFrame"..i]
+
+            if v then
+                table.insert(chatFrame.messageTypeList, 'DM')
+
+            end
+        end
+    end
+
+    for i = 1, NUM_CHAT_WINDOWS do
+        local chatFrame = getglobal("ChatFrame"..i)
+
+    end
+end)
 
 function DMRP.addon:RefreshConfig()
 
     for i, v in pairs(DMRP.Utils.config.profile.trackerBars) do
-        log(v)
         if v.shown then
             DMRP.UI.createStatusBar(i)
         else
@@ -692,3 +718,4 @@ function DMRP.addon:RefreshConfig()
         end
     end
 end
+

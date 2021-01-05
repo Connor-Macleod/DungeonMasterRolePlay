@@ -28,12 +28,12 @@ local function modifyTracker(tracker, amount, shield, bypassShield)
     if DMRP.addon.db.profile.trackerBars[tracker] then
         local trackerTbl = DMRP.addon.db.profile.trackerBars[tracker]
         if shield and trackerTbl.shieldMax then
-            log('shielding')
+
             trackerTbl.shield = trackerTbl.shield + amount;
             if trackerTbl.shield < 0 then trackerTbl.shield = 0 end
             if trackerTbl.shield > trackerTbl.shieldMax then trackerTbl.shield = trackerTbl.shieldMax end
         elseif amount < 0 then
-            log('damage')
+
             if trackerTbl.shield and trackerTbl.shield > 0 then
                 trackerTbl.shield = trackerTbl.shield + amount -- we're reducing, but we already know amount is a negative
                 if trackerTbl.shield < 0 then
@@ -44,7 +44,7 @@ local function modifyTracker(tracker, amount, shield, bypassShield)
                 trackerTbl.current = trackerTbl.current + amount
             end
         else
-            log('healing')
+
             trackerTbl.current = trackerTbl.current + amount
         end
         if trackerTbl.current < 0 then trackerTbl.current = 0 end
@@ -52,9 +52,9 @@ local function modifyTracker(tracker, amount, shield, bypassShield)
         DMRP.UI.updateStatusBar(tracker)
         return trackerTbl;
     else
-        log('tracker  not found', tracker);
-        log('trackes registered', DMRP.addon.db.profile.trackerBars);
-        log('config', DMRP.addon.db.profile);
+
+
+
     end
 end
 DMRP.Tracker.modifyTracker = modifyTracker;
@@ -63,9 +63,9 @@ local function checkTracker(tracker)
     if DMRP.addon.db.profile.trackerBars[tracker] then
         return DMRP.addon.db.profile.trackerBars[tracker]
     else
-        log('tracker  not found', tracker);
-        log('trackes registered', DMRP.addon.db.profile.trackerBars);
-        log('config', DMRP.addon.db.profile);
+
+
+
     end
 end
 
