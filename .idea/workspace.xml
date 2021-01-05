@@ -83,57 +83,11 @@
       <workItem from="1606412196039" duration="12743000" />
       <workItem from="1606520431953" duration="29423000" />
       <workItem from="1606627215914" duration="1066000" />
+      <workItem from="1609886138807" duration="499000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
-  </component>
-  <component name="WindowStateProjectService">
-    <state x="492" y="322" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1606247650634">
-      <screen x="0" y="0" width="1680" height="1050" />
-    </state>
-    <state x="492" y="322" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1680.1050@0.0.1680.1050" timestamp="1606247650634" />
-    <state x="492" y="326" key="#com.intellij.fileTypes.FileTypeChooser/0.23.1680.989@0.23.1680.989" timestamp="1603409688157" />
-    <state x="100" y="100" width="1480" height="850" key="DiffContextDialog" timestamp="1606601624370">
-      <screen x="0" y="23" width="1680" height="989" />
-    </state>
-    <state x="100" y="100" width="1480" height="850" key="DiffContextDialog/0.23.1680.989@0.23.1680.989" timestamp="1606601624370" />
-    <state x="428" y="275" key="IDE.errors.dialog" timestamp="1604586931448">
-      <screen x="0" y="0" width="1680" height="1050" />
-    </state>
-    <state x="428" y="275" key="IDE.errors.dialog/0.0.1680.1050@0.0.1680.1050" timestamp="1604586931448" />
-    <state x="341" y="141" key="SettingsEditor" timestamp="1603624875822">
-      <screen x="0" y="0" width="1680" height="1050" />
-    </state>
-    <state x="341" y="141" key="SettingsEditor/0.0.1680.1050@0.0.1680.1050" timestamp="1603624875822" />
-    <state x="341" y="156" key="SettingsEditor/0.23.1680.989@0.23.1680.989" timestamp="1603410036061" />
-    <state x="100" y="100" width="1480" height="850" key="com.intellij.history.integration.ui.views.DirectoryHistoryDialog" timestamp="1606601624374">
-      <screen x="0" y="23" width="1680" height="989" />
-    </state>
-    <state x="100" y="100" width="1480" height="850" key="com.intellij.history.integration.ui.views.DirectoryHistoryDialog/0.23.1680.989@0.23.1680.989" timestamp="1606601624374" />
-    <state x="100" y="82" width="1480" height="903" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1606597186857">
-      <screen x="0" y="23" width="1680" height="989" />
-    </state>
-    <state x="100" y="82" width="1480" height="903" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.0.1680.1050@0.0.1680.1050" timestamp="1604521872812" />
-    <state x="100" y="82" width="1480" height="903" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.23.1680.989@0.23.1680.989" timestamp="1606597186857" />
-    <state x="100" y="82" width="1480" height="903" key="com.intellij.history.integration.ui.views.SelectionHistoryDialog" timestamp="1606604051918">
-      <screen x="0" y="23" width="1680" height="989" />
-    </state>
-    <state x="100" y="82" width="1480" height="903" key="com.intellij.history.integration.ui.views.SelectionHistoryDialog/0.23.1680.989@0.23.1680.989" timestamp="1606604051918" />
-    <state x="541" y="280" width="747" height="612" key="find.popup" timestamp="1606602490309">
-      <screen x="0" y="0" width="1680" height="1050" />
-    </state>
-    <state x="541" y="280" width="747" height="612" key="find.popup/0.0.1680.1050@0.0.1680.1050" timestamp="1606602490309" />
-    <state x="541" y="287" width="747" height="577" key="find.popup/0.23.1680.989@0.23.1680.989" timestamp="1606090734921" />
-    <state x="2298" y="288" width="854" height="735" key="find.popup/1680.0.1920.1080/0.0.1680.1050@1680.0.1920.1080" timestamp="1606350270638" />
-    <state x="473" y="210" key="new project wizard" timestamp="1604151007295">
-      <screen x="0" y="0" width="1680" height="1050" />
-    </state>
-    <state x="473" y="210" key="new project wizard/0.0.1680.1050@0.0.1680.1050" timestamp="1604151007295" />
-    <state x="505" y="233" width="670" height="676" key="search.everywhere.popup" timestamp="1604151254887">
-      <screen x="0" y="0" width="1680" height="1050" />
-    </state>
-    <state x="505" y="233" width="670" height="676" key="search.everywhere.popup/0.0.1680.1050@0.0.1680.1050" timestamp="1604151254887" />
   </component>
 </project>

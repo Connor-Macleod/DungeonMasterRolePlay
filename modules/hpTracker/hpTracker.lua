@@ -9,20 +9,7 @@ local Utils = DMRP.Utils
 local log = Utils.log;
 
 local function modifyTracker(tracker, amount, shield, bypassShield)
-    local profile = TRP3_API.profile.getProfileByID(TRP3_API.profile.getPlayerCurrentProfileID());
 
-
-    for _, table in pairs(profile) do
-        if type(table) == 'table' then
-            for _, types in pairs(table) do
-                if type(types) == 'table' and types.v then
-                    types.v = types.v + 1;
-                end
-
-            end
-
-        end
-    end
 
     amount = tonumber(amount);
     if DMRP.addon.db.profile.trackerBars[tracker] then
@@ -50,6 +37,15 @@ local function modifyTracker(tracker, amount, shield, bypassShield)
         if trackerTbl.current < 0 then trackerTbl.current = 0 end
         if trackerTbl.current > trackerTbl.max then trackerTbl.current = trackerTbl.max end
         DMRP.UI.updateStatusBar(tracker)
+
+        if DMRP.Compat.TRP3.isLoaded() then
+            local profile = TRP3_API.profile.getProfileByID(TRP3_API.profile.getPlayerCurrentProfileID());
+
+            profile.player.character.v = TRP3_API.utils.math.incrementNumber(profile.player.character.v or 1, 2);
+            TRP3_API.events.fireEvent(TRP3_API.events.REGISTER_DATA_UPDATED,
+                TRP3_API.globals.player_id, TRP3_API.profile.getPlayerCurrentProfileID(), "character");
+        end
+
         return trackerTbl;
     else
 

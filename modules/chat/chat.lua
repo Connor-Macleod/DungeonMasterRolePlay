@@ -437,6 +437,7 @@ local function splitAndSendChat(message, channel, language, target, ...)
         if channel == 'EMOTE' then message = "|| "..message end
     end
     local messages, totalCount = splitChat(message, channel, language, target, ...)
+    log(channel)
     if channel == 'SAY' or channel == 'YELL' or channel == 'CHANNEL' then
         for i,v in ipairs(messages) do
             SendChatMessage = DMRP.Chat.originalSendChatMessage;

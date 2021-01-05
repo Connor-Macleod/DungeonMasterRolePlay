@@ -94,6 +94,7 @@ local function updateStatusBar(tracker)
     if not statusbar then return end
     local shieldColour = '|cFFFFFFFF'
     if currentTracker.shieldColour then
+        log(currentTracker.shieldColour)
         shieldColour = string.format("|c%.2x%.2x%.2x%.2x", currentTracker.shieldColour[4]*255, currentTracker.shieldColour[1]*255, currentTracker.shieldColour[2]*255, currentTracker.shieldColour[3]*255)
     end
 

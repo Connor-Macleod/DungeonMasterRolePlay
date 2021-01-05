@@ -630,10 +630,9 @@ function DMRP.addon:OnInitialize()
                     debugLogging = {
                         name = 'Enable Debug Logging',
                         type = 'toggle',
-                        desc = "debug logging for developers. expect chatscroll. there's a lot of mess in here.",
-                        get = function() return DMRP.Utils.config.debug end,
-                        set = function(_, val) DMRP.Utils.config.debug = val end,
-                        values = availableRolls,
+                        desc = "debug logging for developers. there's a lot of mess in here.",
+                        get = function() return DMRP.Utils.config.global.debug end,
+                        set = function(_, val) DMRP.Utils.config.global.debug = val end,
                     },
                 }
             }
