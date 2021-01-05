@@ -21,7 +21,7 @@ DMRP.Dice.latestRolls = {};
 local function playerInList(target, player)
 
     for i,targ in ipairs(target) do
-        log("comparing", player, targ)
+
         if player == targ then
             return true;
         end
@@ -30,7 +30,7 @@ local function playerInList(target, player)
 end
 DMRP.Utils.playerInList = playerInList
 
-log("init dice");
+
 local function playerDCPasses(player, result, modifier)
     result = tonumber(result)
 
@@ -58,9 +58,7 @@ local function playerDCPasses(player, result, modifier)
 
         if not dc.target or isTargetted then
 
-            log(dc, type(dc.min))
             if dc.min and dc.max and dc.min <= result and dc.max >= result then
-                log(dc.min, "and", dc.max,"and", dc.min <= result, "and", dc.max >= result, dc.action)
                 matchesDC = true;
             elseif dc.min and not dc.max and dc.min <= result then
                 matchesDC = true;
@@ -71,7 +69,7 @@ local function playerDCPasses(player, result, modifier)
             else
                 matchesDC = false;
             end
-            log('matches DC?', matchesDC)
+
         end
         if matchesDC then
             table.insert(matchedActions, dc.action);
@@ -87,7 +85,7 @@ local function DCAction(actions, player)
     local totalDamage = 0;
     local totalKill = 0;
     local totalHP = 0;
-    log('Results', damageResults, killResults, hpResults)
+
     if not damageResults[player] then
         damageResults[player] = {}
         killResults[player] = {}
@@ -111,7 +109,7 @@ local function DCAction(actions, player)
             end
 
         end
-        log('Results', damageResults, killResults, hpResults)
+
         if totalDamage ~= 0 then
             DMRP.Chat.splitAndSendChat("You have dealt "..totalDamage.." damage this round!", "WHISPER", nil, Utils.getPlayerName(player))
         end
@@ -169,7 +167,6 @@ local function reportDiceRolls(author, rollResult, rollSize, modifier)
     local playerName = Utils.getPlayerName(author)
     if currentDiceState == 'advantage' and playerName == Utils.getPlayerName() then
         if tonumber(rollResult) > advantageRoll.result then
-            log(DMRP.Dice.latestRolls)
             advantageRoll = {result = tonumber(rollResult), diceSize = rollSize, modifier = modifier, diceCount = 1, actions = ((DMRP.Dice.latestRolls[playerName] and DMRP.Dice.latestRolls[playerName].actions) or {})}
         end
         diceAdvantage = diceAdvantage - 1;
@@ -193,19 +190,15 @@ local function reportDiceRolls(author, rollResult, rollSize, modifier)
 end
 
 
-local f = CreateFrame("frame")
-f:RegisterEvent("CHAT_MSG_SYSTEM")
-f:SetScript("OnEvent", function(self, event, message, addonContent,...)
-    if event == "CHAT_MSG_SYSTEM" then
-        log(event, message, addonContent,...)
-        local author, rollResult, rollMin, rollMax = string.match(message, "(.+) rolls (%d+) %((%d+)-(%d+)%)")
-        if author then
-            local modifier = rollMin - 1
-            local rollSize = rollMax - modifier
-            reportDiceRolls(author, rollResult, rollSize, modifier);
-        end
-
+ChatFrame_AddMessageEventFilter("CHAT_MSG_SYSTEM", function(chatFrame, event, message, author, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, messageID, guid, arg13, arg14)
+    local author, rollResult, rollMin, rollMax = string.match(message, "(.+) rolls (%d+) %((%d+)-(%d+)%)")
+    if author then
+        local modifier = rollMin - 1
+        local rollSize = rollMax - modifier
+        reportDiceRolls(author, rollResult, rollSize, modifier);
+        return true
     end
+    return false
 end)
 
 local PROTOCOL_PREFIX = "TRP3.3";
@@ -234,10 +227,10 @@ local function TRPDiceRollHandler(arg1, addonContent, channel, sender)
     end
 end
 if not AddOn_Chomp.IsAddonPrefixRegistered(PROTOCOL_PREFIX) then
-    log('registering chomp prefix')
+
     AddOn_Chomp.RegisterAddonPrefix(PROTOCOL_PREFIX, TRPDiceRollHandler, PROTOCOL_SETTINGS)
 else
-    log('hooking chomp prefix')
+
     AddOn_Chomp.HookAddonPrefix(PROTOCOL_PREFIX, TRPDiceRollHandler)
 end
 
@@ -276,7 +269,7 @@ end
 DMRP.Dice.doDiceRoll = doDiceRoll;
 
 local function diceState(state, counter)
-    log('dice state set to', state, 'with special value', counter)
+
     currentDiceState = state
     if state == 'advantage' then
         diceAdvantage = counter;

@@ -6,5 +6,6 @@
     <Include file="dice\dice.xml" />
     <Include file="slash\slash.xml" />
     <Include file="hpTracker\hpTracker.xml" />
+    <Include file="comms\comms.xml" />
     <Include file="ui\ui.xml" />
 </UI>

@@ -30,12 +30,12 @@ end
 
 
 local function updateRollHistory(show)
-    log("showing", show)
+
     if (not scroll or not rollHistoryFrame) and show then
-        log("showing!")
+
         showHistoryFrame();
     elseif not scroll or not rollHistoryFrame then
-        log('dropping out of show')
+
         return;
     end
     local groupSize = 0;
@@ -43,7 +43,6 @@ local function updateRollHistory(show)
     local sortedPlayers = {}
     local totalDamage = 0;
     scroll:ReleaseChildren()
-    log(groupSize)
     rollHistoryFrame:SetStatusText("Players Rolled: " .. rollCount .. " out of " .. groupSize)
     for i = 1, GetNumGroupMembers() do
         local PlayerName, rank, _, _, _, _, zone, online = GetRaidRosterInfo(i);
@@ -108,8 +107,7 @@ local function updateRollHistory(show)
 
             local playerRoll = DMRP.Dice.latestRolls[fullPlayerName]
             if playerRoll then
-                log("[PlayerRoll]", playerRoll);
-                log(DMRP.Dice.mods);
+
                 if playerRoll.modifier == 0 then
                     for i,mod in ipairs(DMRP.Dice.mods) do
                         if not mod.target or DMRP.Utils.playerInList(mod.target, fullPlayerName) then

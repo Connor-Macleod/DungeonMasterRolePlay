@@ -7,7 +7,7 @@
 local Utils = DMRP.Utils
 local Dice = DMRP.Dice
 local log = Utils.log;
-log("init slash");
+
 
 
 SLASH_DMRP1, SLASH_DMRP2 = '/dmrp', '/dungeonmasteroleplay'
@@ -21,10 +21,10 @@ SLASH_EVENT1, SLASH_EVENT2 = '/event', '/ev'
 
 local function spreadSlashArgs(text)
     local argList, inQuotes, counter, firstQuotes = {}, false, 1, false;
-    log("text:", text)
+
     for i in string.gmatch(text, "%S+") do
         if string.match(i, [=[^["'%[]]=]) then inQuotes = true; firstQuotes = true end
-        log("Loopstate:", i, counter, inQuotes)
+
         if not inQuotes then
             table.insert(argList, counter, i)
             counter = counter + 1
@@ -38,7 +38,7 @@ local function spreadSlashArgs(text)
         firstQuotes = false;
         if string.match(i, [=[["'%]]$]=]) then inQuotes = false; counter = counter + 1 end
     end
-    log("argList:", argList)
+
     return argList;
 end
 
@@ -72,14 +72,14 @@ end
 DMRP.Dice.evalDiceRoll = evalDiceRoll;
 
 local function rollex(msg, editBox)
-    log("rollingDie")
+
     -- does rolls
     if type(msg) == 'string' then
         msg = spreadSlashArgs(msg)
     end
-    log("message:", msg)
+
     if not msg[1] then
-        log("setting rolltype to freeform")
+
         --if there's a DC awaiting, we do a dc roll
         --msg[1] = "dc"
         --otherwise we default do a freeform roll
@@ -139,15 +139,19 @@ local function stripChars(str)
 end
 
 local function findplayer(player)
-    --TODO: implement this, a function that will first check for an exact match, then a match ignoring any accents,
-    --    then a partial match, ignoring accents. prioritising the start of a name. LATER; implement the ability to
-    --    save shorthands against players
+    --TODO: implement the ability to save shorthands against players
 
-    -- for now, we assume player is a %t targetted player, and therefore just get realm name.
     if (UnitInRaid(player)) then
         return DMRP.Utils.getPlayerName(player);
     end
 
+
+    for i = 1, GetNumGroupMembers() do
+        local playerName = GetRaidRosterInfo(i);
+        if string.match("^" .. playerName, player) then
+            return DMRP.Utils.getPlayerName(playerName);
+        end
+    end
 
     for i = 1, GetNumGroupMembers() do
         local playerName = GetRaidRosterInfo(i);
@@ -185,7 +189,7 @@ end
 local function registerDC(command, DCs)
     local args = spreadSlashArgs(command);
 
-    log("args!!!!!", command, args);
+
 
     local DC = args[1];
     local action = args[2];
@@ -214,7 +218,7 @@ local function registerDC(command, DCs)
     local kill = string.match(args[2], "([+-]?[0-9]+)kill")
     local kill = string.match(args[2], "([+-]?[0-9]+)kills") or kill
 
-    log("action: ",hp, dam, kill, args[2])
+
 
     if hp then
         range.action = { hp = tonumber(hp) }
@@ -282,6 +286,8 @@ SlashCmdList["EVENT"] = event
 DMRP.Dice.dcs = {};
 DMRP.Dice.mods = {};
 
+DMRP.slash = {}
+
 local dcString = ''
 local function dm(msg, editBox)
     -- handles generic DM actions
@@ -293,46 +299,59 @@ local function dm(msg, editBox)
         local shorthand = string.match(match:sub(2, -2), 'qdc ([a-zA-Z]+)')
         if DMRP.addon.db.profile.shortCodes[shorthand] then
             msg = string.gsub(msg, DMRP.Utils.escapePattern(match), DMRP.addon.db.profile.shortCodes[shorthand])
-
         end
     end
 
+    local everyoneHasDMRP = false;
+    local addonMessageData = {};
+
+    if IsInRaid() then
+        for i = 1, GetNumGroupMembers() do
+            local name, rank, subgroup, level, class, fileName, zone, online = GetRaidRosterInfo(i)
+            local name = DMRP.Utils.getPlayerName(name);
+
+            local status = DMRP.comms.getPlayerStatus(name);
+
+            if not status.version then
+                everyoneHasDMRP = false
+            end
+        end
+    end
+
+    local channel = (IsInRaid() and 'RAID_WARNING') or (IsInGroup() and 'PARTY') or 'EMOTE'
+
 
     for command in msg:gmatch('%[[^%]]+%]') do
-        log("matched command", command)
+
         local shouldRemove = false;
         local commandStripped = command:sub(2, -2);
         local commandProcessing = commandStripped;
         if string.lower(commandProcessing):sub(1, 2) == "dc" then
-            log("matched DC", commandProcessing)
+
             shouldRemove = true
             table.insert(DMRP.Dice.dcs, registerDC(commandProcessing:sub(3, -1), DMRP.Dice.dcs))
         elseif string.lower(commandProcessing):sub(1, 3) == "mod" then
-            log("matched modifier", commandProcessing)
+
             shouldRemove = true
             table.insert(DMRP.Dice.mods, registerModifier(commandProcessing:sub(4, -1), DMRP.Dice.mods))
         end
         log ("mods", DMRP.Dice.mods)
 
-        log("removing", shouldRemove, DMRP.Utils.escapePattern(command));
+
 
         if shouldRemove then
             msg = msg:gsub(DMRP.Utils.escapePattern(command) .. " *", '')
         end
     end
+    addonMessageData.mainMessage = msg
 
-    DMRP.Chat.splitAndSendChat(msg, "RAID_WARNING");
 
-    log('dcs', DMRP.Dice.dcs)
     local DCsMessages = {};
     for i,dc in ipairs(DMRP.Dice.dcs) do
         if dc.action and not DCsMessages[1] then
             table.insert(DCsMessages, "dice check! please roll 20!");
+            addonMessageData.dcs = true;
         end
-    end
-
-    if  DCsMessages[1] then
-        DMRP.Chat.splitAndSendChat(DCsMessages, 'RAID_WARNING')
     end
 
 
@@ -340,7 +359,7 @@ local function dm(msg, editBox)
     for i,mod in ipairs(DMRP.Dice.mods) do
         local ModifierMessage = "("
 
-        if mod.target then
+        if mod.target and not DMRP.comms.getPlayerStatus(mod.target).version then
             for j,target in ipairs(mod.target) do
                 ModifierMessage = ModifierMessage .. Ambiguate(target, "short")
                 if mod.target[j+1] then
@@ -355,15 +374,59 @@ local function dm(msg, editBox)
         ModifierMessage = ModifierMessage .. "add a modifier of "..mod.mod.." to next roll"
 
         ModifierMessage = ModifierMessage .. ")"
-        table.insert(ModifierMessages, ModifierMessage);
+
+        if not mod.target then
+            table.insert(ModifierMessages, ModifierMessage);
+        else
+            DMRP.Chat.splitAndSendChat(ModifierMessages, channel, nil, mod.target)
+        end
+
+        addonMessageData.modifiers = DMRP.Dice.mods;
     end
 
-    if  ModifierMessages[2] then
-        DMRP.Chat.splitAndSendChat(ModifierMessages, 'RAID_WARNING')
+
+    AddOn_Chomp.SmartAddonMessage('DMRPdm', addonMessageData, 'RAID', nil, {serialize = true})
+    if UnitExists('target') then
+        AddOn_Chomp.SmartAddonMessage('DMRPdm', addonMessageData, 'WHISPER', UnitName('target'), {serialize = true})
     end
+
+    if not UnitExists('target') and channel == "EMOTE" then
+        DMRP.Chat.fakeChatMessage(addonMessageData.mainMessage, 'DM', sender, DMRP.Utils.getPlayerGuidCached(UnitGUID("player")), DMRP.Utils.getPlayerGuidCached)
+    end
+
+
+    DMRP.slash.nextDMMessages = function()
+        if not everyoneHasDMRP then
+            DMRP.Chat.splitAndSendChat(msg, channel);
+            if DCsMessages[1] then
+                DMRP.Chat.splitAndSendChat(DCsMessages, channel)
+            end
+            if ModifierMessages[2] then
+                DMRP.Chat.splitAndSendChat(ModifierMessages, channel)
+            end
+        end
+        DMRP.slash.nextDMMessages = nil;
+    end
+
+    local messagesToSupress = DMRP.Chat.splitChat(addonMessageData.mainMessage)
+
+    if channel == "EMOTE" then
+        for i,v in ipairs(messagesToSupress) do
+            table.insert(DMRP.Chat.supressMessages, v)
+            table.insert(DMRP.Chat.supressRWS, v)
+        end
+
+        if addonMessageData.dcs then
+            table.insert(DMRP.Chat.supressMessages, "dice check! please roll 20!")
+            table.insert(DMRP.Chat.supressRWS, "dice check! please roll 20!")
+        end
+        DMRP.slash.nextDMMessages();
+    end
+
+
 end
+DMRP.slash.dm = dm
 
-SlashCmdList["DM"] = dm
 
 local function dc(msg, editBox)
     -- prepare DM without sending
@@ -377,10 +440,8 @@ end
 SlashCmdList["DC"] = dc
 
 local paused = false
-
 SlashCmdList["DMRP"] = function(msg, editBox)
     -- handles all actions
-
     if type(msg) == 'string' then
         msg = spreadSlashArgs(msg)
     end
@@ -417,7 +478,7 @@ SlashCmdList["DMRP"] = function(msg, editBox)
         introMessage = introMessage..'Please put 10/10 hp into your currently or about. If you hit 0HP you are unable to continue until rescued by a healer, or pulled clear of the fighting by an ally (at wich point you may return with 1hp if you so choose) '
         DMRP.Chat.splitAndSendChat(introMessage, 'RAID_WARNING')
     elseif msg[1] == 'hp' then
-        log('tracking hp')
+
         local tracker = {}
         if msg[2] == 'dam' then
             tracker = DMRP.Tracker.damage(msg[3])

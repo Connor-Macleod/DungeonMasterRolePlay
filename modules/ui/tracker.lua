@@ -14,7 +14,7 @@ local lwin = LibStub("LibWindow-1.1")
 local statusBars = {}
 local framePool = {};
 local function createStatusBar(tracker)
-    log('showing tracker', tracker)
+
     if statusBars[tracker] then return end
     local recycle = false;
     local frame;
@@ -61,7 +61,6 @@ local function createStatusBar(tracker)
     frame.clickFrame:EnableMouse(true)
     frame.clickFrame:RegisterForClicks("AnyUp")
     frame.clickFrame:SetScript("OnClick", function (self, button, down)
-        log('self, button, down',self, button, down)
         if button=="LeftButton" then
             DMRP.Tracker.modifyTracker(tracker, -1, IsShiftKeyDown(), false)
         elseif button=="RightButton" then
@@ -90,19 +89,16 @@ end
 DMRP.UI.createStatusBar = createStatusBar
 
 local function updateStatusBar(tracker)
-    log('checking for tracker ', tracker)
     local currentTracker = DMRP.Tracker.checkTracker(tracker)
     local statusbar = statusBars[tracker];
     if not statusbar then return end
-    log('updating tracker ', tracker)
     local shieldColour = '|cFFFFFFFF'
     if currentTracker.shieldColour then
-        log('shieldColour', currentTracker.shieldColour)
+        log(currentTracker.shieldColour)
         shieldColour = string.format("|c%.2x%.2x%.2x%.2x", currentTracker.shieldColour[4]*255, currentTracker.shieldColour[1]*255, currentTracker.shieldColour[2]*255, currentTracker.shieldColour[3]*255)
     end
 
     local statusbarText = currentTracker.current.."/"..currentTracker.max..((currentTracker.shieldMax and currentTracker.shield > 0 and ' '..shieldColour..'(+'..currentTracker.shield..")|r") or '')
-    log('tracker ', statusbarText)
     statusbar.clickFrame.statusbar:SetMinMaxValues(0, currentTracker.max)
     statusbar.clickFrame.statusbar.value:SetText(statusbarText)
     statusbar.clickFrame.statusbar.bg:SetVertexColor(unpack(currentTracker.backColour))

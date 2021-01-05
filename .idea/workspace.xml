@@ -28,10 +28,13 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="jdk.selected.LUA_MODULE" value="LuaJ" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/modules/ui" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../totalRP3" />
     <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
+    <property name="node.js.path.for.package.tslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="project.structure.last.edited" value="SDKs" />
     <property name="project.structure.proportion" value="0.0" />
@@ -52,7 +55,7 @@
       <recent name="$PROJECT_DIR$/modules/slash" />
     </key>
   </component>
-  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="SpellCheckerSettings" BundledDictionaries="0" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" Dictionaries="0" CorrectionsLimit="5" DefaultDictionary="application-level" UseSingleDictionary="true" />
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -79,19 +82,31 @@
       <workItem from="1605130855525" duration="127000" />
       <workItem from="1605372601296" duration="128000" />
       <workItem from="1605904789979" duration="70186000" />
-      <workItem from="1606115768452" duration="16802000" />
+      <workItem from="1606115768452" duration="48762000" />
+      <workItem from="1606412196039" duration="12743000" />
+      <workItem from="1606520431953" duration="28936000" />
+      <workItem from="1606680850010" duration="9442000" />
+      <workItem from="1609871426552" duration="370000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="3" />
+    <option name="version" value="2" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="492" y="322" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1603459953858">
+    <state x="492" y="322" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1606247650634">
       <screen x="0" y="0" width="1680" height="1050" />
     </state>
-    <state x="492" y="322" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1680.1050@0.0.1680.1050" timestamp="1603459953858" />
+    <state x="492" y="322" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1680.1050@0.0.1680.1050" timestamp="1606247650634" />
     <state x="492" y="326" key="#com.intellij.fileTypes.FileTypeChooser/0.23.1680.989@0.23.1680.989" timestamp="1603409688157" />
+    <state x="100" y="100" width="1480" height="850" key="DiffContextDialog" timestamp="1606601624370">
+      <screen x="0" y="23" width="1680" height="989" />
+    </state>
+    <state x="100" y="100" width="1480" height="850" key="DiffContextDialog/0.23.1680.989@0.23.1680.989" timestamp="1606601624370" />
+    <state x="740" y="295" key="FileChooserDialogImpl" timestamp="1606682633023">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="740" y="295" key="FileChooserDialogImpl/0.0.1920.1080@0.0.1920.1080" timestamp="1606682633023" />
     <state x="428" y="275" key="IDE.errors.dialog" timestamp="1604586931448">
       <screen x="0" y="0" width="1680" height="1050" />
     </state>
@@ -101,16 +116,25 @@
     </state>
     <state x="341" y="141" key="SettingsEditor/0.0.1680.1050@0.0.1680.1050" timestamp="1603624875822" />
     <state x="341" y="156" key="SettingsEditor/0.23.1680.989@0.23.1680.989" timestamp="1603410036061" />
-    <state x="100" y="82" width="1480" height="903" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1606112643216">
+    <state x="100" y="100" width="1480" height="850" key="com.intellij.history.integration.ui.views.DirectoryHistoryDialog" timestamp="1606601624374">
+      <screen x="0" y="23" width="1680" height="989" />
+    </state>
+    <state x="100" y="100" width="1480" height="850" key="com.intellij.history.integration.ui.views.DirectoryHistoryDialog/0.23.1680.989@0.23.1680.989" timestamp="1606601624374" />
+    <state x="100" y="82" width="1480" height="903" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1606597186857">
       <screen x="0" y="23" width="1680" height="989" />
     </state>
     <state x="100" y="82" width="1480" height="903" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.0.1680.1050@0.0.1680.1050" timestamp="1604521872812" />
-    <state x="100" y="82" width="1480" height="903" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.23.1680.989@0.23.1680.989" timestamp="1606112643216" />
-    <state x="541" y="280" width="747" height="612" key="find.popup" timestamp="1606166902737">
+    <state x="100" y="82" width="1480" height="903" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.23.1680.989@0.23.1680.989" timestamp="1606597186857" />
+    <state x="100" y="82" width="1480" height="903" key="com.intellij.history.integration.ui.views.SelectionHistoryDialog" timestamp="1606604051918">
+      <screen x="0" y="23" width="1680" height="989" />
+    </state>
+    <state x="100" y="82" width="1480" height="903" key="com.intellij.history.integration.ui.views.SelectionHistoryDialog/0.23.1680.989@0.23.1680.989" timestamp="1606604051918" />
+    <state x="541" y="280" width="747" height="612" key="find.popup" timestamp="1606602490309">
       <screen x="0" y="0" width="1680" height="1050" />
     </state>
-    <state x="541" y="280" width="747" height="612" key="find.popup/0.0.1680.1050@0.0.1680.1050" timestamp="1606166902737" />
+    <state x="541" y="280" width="747" height="612" key="find.popup/0.0.1680.1050@0.0.1680.1050" timestamp="1606602490309" />
     <state x="541" y="287" width="747" height="577" key="find.popup/0.23.1680.989@0.23.1680.989" timestamp="1606090734921" />
+    <state x="2298" y="288" width="854" height="735" key="find.popup/1680.0.1920.1080/0.0.1680.1050@1680.0.1920.1080" timestamp="1606350270638" />
     <state x="473" y="210" key="new project wizard" timestamp="1604151007295">
       <screen x="0" y="0" width="1680" height="1050" />
     </state>

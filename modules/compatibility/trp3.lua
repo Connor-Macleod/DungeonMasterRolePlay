@@ -17,32 +17,34 @@ local function replaceStat(string)
         local arguments = DMRP.Dice.spreadSlashArgs(commandStripped)
 
         local tracker = DMRP.Tracker.checkTracker(arguments[1])
-        if arguments[2] and  arguments[2]:match('^[\'"]')  and  arguments[2]:match('[\'"]$') then
-            arguments[2] = arguments[2]:sub(2, -2);
+        if tracker then
+            if arguments[2] and  arguments[2]:match('^[\'"]')  and  arguments[2]:match('[\'"]$') then
+                arguments[2] = arguments[2]:sub(2, -2);
+            end
+            local shieldColour
+            local trackerColour = string.format("|c%.2x%.2x%.2x%.2x", tracker.amountColour[4]*255, tracker.amountColour[1]*255, tracker.amountColour[2]*255, tracker.amountColour[3]*255)
+            if tracker.shield and tracker.shield > 0 then
+                shieldColour = string.format("|c%.2x%.2x%.2x%.2x", tracker.shieldColour[4]*255, tracker.shieldColour[1]*255, tracker.shieldColour[2]*255, tracker.shieldColour[3]*255)
+            end
+
+
+            local replacement = trackerColour..tracker.current..(tracker.shield and tracker.shield > 0 and (shieldColour.."+"..tracker.shield..'|r') or '')..'/'..tracker.max..'|r'
+
+            string = string:gsub(DMRP.Utils.escapePattern(command), replacement)
         end
-        local shieldColour
-        local trackerColour = string.format("|c%.2x%.2x%.2x%.2x", tracker.amountColour[4]*255, tracker.amountColour[1]*255, tracker.amountColour[2]*255, tracker.amountColour[3]*255)
-        if tracker.shield and tracker.shield > 0 then
-            shieldColour = string.format("|c%.2x%.2x%.2x%.2x", tracker.shieldColour[4]*255, tracker.shieldColour[1]*255, tracker.shieldColour[2]*255, tracker.shieldColour[3]*255)
-        end
-
-
-        local replacement = trackerColour..tracker.current..(tracker.shield and tracker.shield > 0 and (shieldColour.."+"..tracker.shield..'|r') or '')..'/'..tracker.max..'|r'
-
-        string = string:gsub(DMRP.Utils.escapePattern(command), replacement)
-
     end
     return string;
 end
 DMRP.Compat.TRP3.replaceStat = replaceStat;
 
 local function hook()
-    log('hooking')
+
     local originalRegisterPrefix = AddOn_TotalRP3.Communications.registerSubSystemPrefix
     AddOn_TotalRP3.Communications.registerSubSystemPrefix = function(event, callback, handlerID)
+        log(event)
         if event == "GI" then
             originalRegisterPrefix(event, function(informationType, senderID,...)
-
+                log(informationType, senderID)
                 local playerAPI = TRP3_API.register.player;
                 local getCharExchangeData = playerAPI.getCharacteristicsExchangeData;
                 local getAboutExchangeData = playerAPI.getAboutExchangeData;
@@ -56,7 +58,6 @@ local function hook()
                 local INFO_TYPE_SEND_PREFIX = "SI";
                 local INFO_TYPE_SEND_PRIORITY = Comm.PRIORITIES.LOW;
 
-                --todo: Hack the fuck out of people's TRP profiles!
                 local data;
                 if informationType == TRP3_API.register.registerInfoTypes.CHARACTERISTICS then
                     data = getCharExchangeData();
@@ -71,29 +72,32 @@ local function hook()
                     local profileID = informationType:sub(COMPANION_PREFIX:len() + 2);
                     data = getCompanionData(profileID, v);
                 end
-                log('sending profile!', informationType, senderID, data)
+
                 local moddedData = {}
                 for orig_key, orig_value in pairs(data) do
                     moddedData[orig_key] = orig_value
                 end
-                if moddedData.CO then
-                    moddedData.CO = replaceStat(moddedData.CO)
+                log(data)
+                if data.CO then
+                    moddedData.CO = replaceStat(data.CO)
+                    log('OOC',moddedData.CO)
                 end
-                if moddedData.CU then
-                    moddedData.CU = replaceStat(moddedData.CU)
+                if data.CU then
+                    moddedData.CU = replaceStat(data.CU)
+                    log('Currently',moddedData.CU)
                 end
                 if moddedData then
-                    log(("Send %s info to %s"):format(informationType, senderID));
                     AddOn_TotalRP3.Communications.sendObject(INFO_TYPE_SEND_PREFIX, {informationType, moddedData}, senderID, INFO_TYPE_SEND_PRIORITY, nil, true);
+                else
+                    AddOn_TotalRP3.Communications.sendObject(INFO_TYPE_SEND_PREFIX, {informationType, data}, senderID, INFO_TYPE_SEND_PRIORITY, nil, true);
                 end
-
             end, handlerID)
         else
             originalRegisterPrefix(event, callback, handlerID)
         end
 
     end
-    log('hooked TRP functions')
+
 end
 
 local trp3IsLoaded = false;
@@ -189,7 +193,7 @@ local function colouredNameWithoutGUID(fallback, event, arg1, unitID, arg3, arg4
     end
 
     if GetCVar("chatClassColorOverride") ~= "1" then
-        log("unitID", unitID)
+
         local classColour = DMRP.Utils.GetClassColourByUnitId(unitID);
         characterColor = TRP3_API.utils.color.CreateColor(classColour.r, classColour.g, classColour.b, 1)
     end
